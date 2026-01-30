@@ -1,0 +1,44 @@
+---
+services:
+  oracle-ts:
+    image: tailscale/tailscale:latest
+    container_name: ${STACK_NAME}-ts
+    hostname: ${TS_HOSTNAME}
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - "TS_EXTRA_ARGS=--advertise-tags=tag:container --reset"
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - oracle-ts-state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: unless-stopped
+    ports:
+      # Optional LAN access (still strongly recommend using Tailscale)
+      - "${PUBLIC_PORT:-11434}:11434"
+
+  oracle-app:
+    image: ollama/ollama:latest
+    container_name: ${STACK_NAME}-app
+    network_mode: service:oracle-ts
+    depends_on:
+      - oracle-ts
+    volumes:
+      - oracle-data:/root/.ollama
+    environment:
+      - TZ=${TIMEZONE:-UTC}
+      # Optional: if you want to be explicit
+      # - OLLAMA_HOST=0.0.0.0:11434
+      # - OLLAMA_KEEP_ALIVE=5m
+    restart: unless-stopped
+
+volumes:
+  oracle-ts-state:
+    name: ${STACK_NAME}-state
+    driver: local
+  oracle-data:
+    name: ${STACK_NAME}-data
+    driver: local
