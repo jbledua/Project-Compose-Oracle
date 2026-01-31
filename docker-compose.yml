@@ -19,6 +19,8 @@ services:
     ports:
       # Optional LAN access (still strongly recommend using Tailscale)
       - "${PUBLIC_PORT:-11434}:11434"
+      # Optional LAN access to A1111
+      - "${PUBLIC_SD_PORT:-7860}:7860"
 
   oracle-app:
     image: ollama/ollama:latest
@@ -30,9 +32,29 @@ services:
       - oracle-data:/root/.ollama
     environment:
       - TZ=${TIMEZONE:-UTC}
-      # Optional: if you want to be explicit
-      # - OLLAMA_HOST=0.0.0.0:11434
-      # - OLLAMA_KEEP_ALIVE=5m
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  oracle-a1111:
+    image: ghcr.io/ai-dock/stable-diffusion-webui:latest
+    container_name: ${STACK_NAME}-a1111
+    network_mode: service:oracle-ts
+    depends_on:
+      - oracle-ts
+    environment:
+      # Start A1111 with API enabled so Open WebUI can call it
+      - WEBUI_ARGS=--listen --api
+      # Optional: auto-update webui on start (slower boots)
+      # - AUTO_UPDATE=true
+    volumes:
+      # Persistent workspace (models, outputs, etc.)
+      - oracle-a1111-workspace:/workspace
     deploy:
       resources:
         reservations:
@@ -46,6 +68,11 @@ volumes:
   oracle-ts-state:
     name: ${STACK_NAME}-state
     driver: local
+
   oracle-data:
     name: ${STACK_NAME}-data
+    driver: local
+
+  oracle-a1111-workspace:
+    name: ${STACK_NAME}-a1111
     driver: local
