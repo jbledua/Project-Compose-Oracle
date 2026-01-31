@@ -21,6 +21,8 @@ services:
       - "${PUBLIC_PORT:-11434}:11434"
       # Optional LAN access to A1111
       - "${PUBLIC_SD_PORT:-7860}:7860"
+      # Open port 1111
+      - "${PUBLIC_1111_PORT:-1111}:1111"
 
   oracle-app:
     image: ollama/ollama:latest
