@@ -22,7 +22,6 @@ services:
 
   oracle-app:
     image: ollama/ollama:latest
-    gpu: all
     container_name: ${STACK_NAME}-app
     network_mode: service:oracle-ts
     depends_on:
@@ -34,6 +33,13 @@ services:
       # Optional: if you want to be explicit
       # - OLLAMA_HOST=0.0.0.0:11434
       # - OLLAMA_KEEP_ALIVE=5m
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
 
 volumes:
