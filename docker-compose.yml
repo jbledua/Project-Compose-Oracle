@@ -54,6 +54,7 @@ services:
       - WEBUI_ARGS=--listen --api
       # Optional: auto-update webui on start (slower boots)
       # - AUTO_UPDATE=true
+      - WEB_ENABLE_AUTH=false
     volumes:
       # Persistent workspace (models, outputs, etc.)
       - oracle-a1111-workspace:/workspace
