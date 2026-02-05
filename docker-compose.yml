@@ -21,7 +21,7 @@ services:
       - "${PUBLIC_PORT:-11434}:11434"
       # Optional LAN access to A1111
       - "${PUBLIC_SD_PORT:-7860}:7860"
-      # Open port 1111
+      # Portal (AI-Dock)
       - "${PUBLIC_1111_PORT:-1111}:1111"
 
   oracle-app:
@@ -50,14 +50,19 @@ services:
     depends_on:
       - oracle-ts
     environment:
-      # Start A1111 with API enabled so Open WebUI can call it
       - WEBUI_ARGS=--listen --api
-      # Optional: auto-update webui on start (slower boots)
-      # - AUTO_UPDATE=true
+      # You used this to bypass the portal login issue:
       - WEB_ENABLE_AUTH=false
     volumes:
-      # Persistent workspace (models, outputs, etc.)
+      # Keep your existing persistent workspace
       - oracle-a1111-workspace:/workspace
+
+      # NEW: persist A1111 assets where your models actually are
+      - oracle-a1111-models:/opt/stable-diffusion-webui/models
+      - oracle-a1111-embeddings:/opt/stable-diffusion-webui/embeddings
+      - oracle-a1111-outputs:/opt/stable-diffusion-webui/outputs
+      - oracle-a1111-extensions:/opt/stable-diffusion-webui/extensions
+
     deploy:
       resources:
         reservations:
@@ -78,4 +83,21 @@ volumes:
 
   oracle-a1111-workspace:
     name: ${STACK_NAME}-a1111
+    driver: local
+
+  # NEW named volumes
+  oracle-a1111-models:
+    name: ${STACK_NAME}-a1111-models
+    driver: local
+
+  oracle-a1111-embeddings:
+    name: ${STACK_NAME}-a1111-embeddings
+    driver: local
+
+  oracle-a1111-outputs:
+    name: ${STACK_NAME}-a1111-outputs
+    driver: local
+
+  oracle-a1111-extensions:
+    name: ${STACK_NAME}-a1111-extensions
     driver: local
