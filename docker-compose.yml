@@ -50,7 +50,7 @@ services:
     depends_on:
       - oracle-ts
     environment:
-      - WEBUI_ARGS=--listen --api
+      - WEBUI_ARGS=--listen --api --enable-insecure-extension-access
       # You used this to bypass the portal login issue:
       - WEB_ENABLE_AUTH=false
     volumes:
